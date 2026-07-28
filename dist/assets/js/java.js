@@ -1,6 +1,30 @@
 // Dokkan Battle Defense Calculator - JavaScript Functions
 
 /**
+ * Journalisation de développement.
+ *
+ * Les messages de diagnostic sont désactivés par défaut : certaines fonctions
+ * (le calcul des dégâts notamment) sont appelées plusieurs milliers de fois
+ * pour tracer le graphique, et écrire dans la console à chaque appel coûtait
+ * plusieurs secondes à chaque modification d'un paramètre.
+ *
+ * Pour réafficher les messages pendant un débogage, taper dans la console :
+ *     DokkanDebug.activer()
+ * puis recharger un calcul. DokkanDebug.desactiver() les coupe à nouveau.
+ *
+ * Les erreurs (console.error / console.warn) restent toujours visibles.
+ */
+let DEBUG_LOGS = false;
+function log(...args) {
+    if (DEBUG_LOGS) console.log(...args);
+}
+window.DokkanDebug = {
+    activer() { DEBUG_LOGS = true; console.log('🔧 Messages de diagnostic activés'); },
+    desactiver() { DEBUG_LOGS = false; console.log('🔇 Messages de diagnostic désactivés'); },
+    get actif() { return DEBUG_LOGS; }
+};
+
+/**
  * Échappe les caractères HTML dangereux avant toute insertion via innerHTML.
  * Indispensable : les noms de personnages/boss viennent du localStorage, des
  * fichiers importés et du paramètre d'URL ?config=, donc d'une source non fiable.
@@ -155,7 +179,7 @@ function calculateDefenseWithTree(treeCompletionValue) {
 // **FONCTION PRINCIPALE : CALCUL DE LA DÉFENSE**
 function calculateDefense() {
     try {
-        console.log('🔧 Calcul de la défense en cours...');
+        log('🔧 Calcul de la défense en cours...');
         
         // Récupération des valeurs depuis les inputs
         const baseDef = parseInt(document.getElementById('baseDef').value) || 0;
@@ -183,14 +207,14 @@ function calculateDefense() {
         const stackValue2 = parseInt(document.getElementById('stackValue2').value) || 0;
         const stack2 = parseInt(document.getElementById('stack2').value) || 0;
 
-        console.log(`📊 Valeurs de base: DEF=${baseDef}, Équips=${equips}, Type=${typeSelection}`);
+        log(`📊 Valeurs de base: DEF=${baseDef}, Équips=${equips}, Type=${typeSelection}`);
 
         // Calcul de la complétion de l'arbre
         let treeCompletion = trees[typeSelection][treeCompletionIndex];
         if (rankS) treeCompletion = Math.floor(treeCompletion * 1.4);
         if (f2p) treeCompletion = Math.floor(treeCompletion * 0.6);
 
-        console.log(`🌳 Arbre: ${treeCompletion} (base: ${trees[typeSelection][treeCompletionIndex]}, RankS: ${rankS}, F2P: ${f2p})`);
+        log(`🌳 Arbre: ${treeCompletion} (base: ${trees[typeSelection][treeCompletionIndex]}, RankS: ${rankS}, F2P: ${f2p})`);
 
         // Calcul de la défense selon la formule Python (floor à chaque étape)
         let defense = baseDef + equips + treeCompletion;
@@ -203,13 +227,13 @@ function calculateDefense() {
         defense = Math.floor(defense * (1 + mb1 / 100 * (mb1Active ? 1 : 0) + mb2 / 100 * (mb2Active ? 1 : 0)));
         defense = Math.floor(defense * (1 + stackValue1 / 100 * stack1 + stackValue2 / 100 * stack2));
 
-        console.log(`🛡️ DÉFENSE CALCULÉE: ${defense.toLocaleString()}`);
+        log(`🛡️ DÉFENSE CALCULÉE: ${defense.toLocaleString()}`);
 
         // **MISE À JOUR DE L'AFFICHAGE**
         const defenseElement = document.getElementById('defenseValue');
         if (defenseElement) {
             defenseElement.textContent = defense.toLocaleString();
-            console.log('✅ Affichage de la défense mis à jour');
+            log('✅ Affichage de la défense mis à jour');
         } else {
             console.error('❌ Élément defenseValue introuvable');
         }
@@ -217,7 +241,7 @@ function calculateDefense() {
         // **FORCER LA MISE À JOUR IMMÉDIATE DE TOUS LES ÉLÉMENTS**
         // Utiliser requestAnimationFrame pour s'assurer que le DOM est mis à jour
         requestAnimationFrame(() => {
-            console.log('🔄 Mise à jour forcée de tous les éléments...');
+            log('🔄 Mise à jour forcée de tous les éléments...');
             updateThresholdAnalysis(defense); // Passer la valeur calculée directement
             updateCharacterDisplay();
             updateChart();
@@ -233,11 +257,11 @@ function calculateDefense() {
 // **FONCTION : MISE À JOUR DE L'ANALYSE DE SEUILS**
 function updateThresholdAnalysis(defenseValue = null) {
     try {
-        console.log('📊 Mise à jour de l\'analyse de seuils...');
+        log('📊 Mise à jour de l\'analyse de seuils...');
         updateCharacterSummary(defenseValue);
         calculateThresholds(defenseValue);
         generateRecommendations();
-        console.log('✅ Analyse de seuils mise à jour');
+        log('✅ Analyse de seuils mise à jour');
     } catch (error) {
         console.error('❌ Erreur dans updateThresholdAnalysis:', error);
     }
@@ -248,7 +272,7 @@ function updateCharacterSummary(defenseValue = null) {
     const damageReduction = parseInt(document.getElementById('damageReduction')?.value) || 0;
     const typeSituation = getTypeSituation();
     
-    console.log(`📊 Mise à jour résumé: DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%`);
+    log(`📊 Mise à jour résumé: DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%`);
     
     const summaryDefenseEl = document.getElementById('summaryDefense');
     const summaryReductionEl = document.getElementById('summaryReduction');
@@ -256,7 +280,7 @@ function updateCharacterSummary(defenseValue = null) {
     
     if (summaryDefenseEl) {
         summaryDefenseEl.textContent = defense.toLocaleString();
-        console.log(`✅ Défense mise à jour dans résumé: ${defense.toLocaleString()}`);
+        log(`✅ Défense mise à jour dans résumé: ${defense.toLocaleString()}`);
     } else {
         console.error('❌ Élément summaryDefense introuvable');
     }
@@ -285,7 +309,7 @@ function calculateThresholds(defenseValue = null) {
         const guardActive = document.getElementById('guardActive')?.checked || false;
         const typeDefense = parseInt(document.getElementById('typeDefense')?.value) || 5;
         
-        console.log(`🔍 Calcul seuils: DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%, Guard Selection=${guardSelection}, Garde Active=${guardActive}`);
+        log(`🔍 Calcul seuils: DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%, Guard Selection=${guardSelection}, Garde Active=${guardActive}`);
         
         // Vérifier que la défense est bien récupérée
         if (defense === 0) {
@@ -308,11 +332,11 @@ function calculateThresholds(defenseValue = null) {
         // car le 0.8 de la garde s'applique séparément dans la formule
         if (guardSelection >= 0 && guardSelection < classTypeMultipliers.length) {
             classTypeMultiplier = classTypeMultipliers[guardSelection].multiplier;
-            console.log(`⚔️ Situation "${classTypeMultipliers[guardSelection].description}": multiplicateur ${classTypeMultiplier} pour les seuils`);
+            log(`⚔️ Situation "${classTypeMultipliers[guardSelection].description}": multiplicateur ${classTypeMultiplier} pour les seuils`);
         }
         
         if (guardActive) {
-            console.log(`🛡️ Garde passive activée pour seuils: 0.8 sera appliqué dans la formule`);
+            log(`🛡️ Garde passive activée pour seuils: 0.8 sera appliqué dans la formule`);
         }
         
         // **BONUS DE DÉFENSE DE TYPE (comme Python)**
@@ -320,9 +344,9 @@ function calculateThresholds(defenseValue = null) {
         const typeDefenseBonus = (hasTypeAdvantageBeforeGuard && !guardActive) ? (typeDefense * 0.01) : 0;
         
         if (hasTypeAdvantageBeforeGuard && !guardActive) {
-            console.log(`🎯 Avantage de type détecté pour seuils: bonus de défense type = ${typeDefense}% (${typeDefenseBonus})`);
+            log(`🎯 Avantage de type détecté pour seuils: bonus de défense type = ${typeDefense}% (${typeDefenseBonus})`);
         } else if (hasTypeAdvantageBeforeGuard && guardActive) {
-            console.log(`🛡️ Garde active: bonus de défense type ignoré dans les seuils`);
+            log(`🛡️ Garde active: bonus de défense type ignoré dans les seuils`);
         }
         
         // Appliquer le bonus de défense de type au multiplicateur
@@ -336,20 +360,20 @@ function calculateThresholds(defenseValue = null) {
         // **CALCUL DES SEUILS SELON LA FORMULE CORRECTE avec multiplicateurs classe & type**
         // Récupérer les PV de la team
         const teamHP = parseInt(document.getElementById('teamHP')?.value) || 850000;
-        console.log(`❤️ PV de la team: ${teamHP.toLocaleString()}`);
+        log(`❤️ PV de la team: ${teamHP.toLocaleString()}`);
         
         let immunityThreshold, deathThreshold;
         
         // DEBUG: Afficher toutes les valeurs avant calcul
-        console.log(`🔧 DEBUG CALCUL - Valeurs d'entrée:`);
-        console.log(`   Defense: ${defense} (type: ${typeof defense})`);
-        console.log(`   ClassTypeMultiplier: ${classTypeMultiplier} (type: ${typeof classTypeMultiplier})`);
-        console.log(`   TypeDefenseBonus: ${typeDefenseBonus}`);
-        console.log(`   FinalTypeMultiplier: ${finalTypeMultiplier}`);
-        console.log(`   ReductionMultiplier: ${reductionMultiplier} (type: ${typeof reductionMultiplier})`);
-        console.log(`   Variance: ${variance}`);
-        console.log(`   GuardActive: ${guardActive} (type: ${typeof guardActive})`);
-        console.log(`   TeamHP: ${teamHP} (type: ${typeof teamHP})`);
+        log(`🔧 DEBUG CALCUL - Valeurs d'entrée:`);
+        log(`   Defense: ${defense} (type: ${typeof defense})`);
+        log(`   ClassTypeMultiplier: ${classTypeMultiplier} (type: ${typeof classTypeMultiplier})`);
+        log(`   TypeDefenseBonus: ${typeDefenseBonus}`);
+        log(`   FinalTypeMultiplier: ${finalTypeMultiplier}`);
+        log(`   ReductionMultiplier: ${reductionMultiplier} (type: ${typeof reductionMultiplier})`);
+        log(`   Variance: ${variance}`);
+        log(`   GuardActive: ${guardActive} (type: ${typeof guardActive})`);
+        log(`   TeamHP: ${teamHP} (type: ${typeof teamHP})`);
         
         if (guardActive) {
             // Avec garde activée: ((attaque * variance * type_multi * réduction * 0.8) - défense) / 2 = dégâts
@@ -361,14 +385,14 @@ function calculateThresholds(defenseValue = null) {
             // Résolution: attaque = ((teamHP * 2) + défense) / (variance * type_multi * réduction * 0.8)
             deathThreshold = ((teamHP * 2) + defense) / (variance * finalTypeMultiplier * reductionMultiplier * 0.8);
             
-            console.log(`🔧 DEBUG CALCUL AVEC GARDE:`);
-            console.log(`   Formule: ((dégâts * 2) + défense) / (variance * type_multi * réduction * 0.8)`);
-            console.log(`   Immunité: ((150 * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8)`);
-            console.log(`   Immunité: ${(150 * 2) + defense} / ${variance * finalTypeMultiplier * reductionMultiplier * 0.8}`);
-            console.log(`   Immunité: ${immunityThreshold}`);
-            console.log(`   Mort: ((${teamHP} * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8)`);
-            console.log(`   Mort: ${(teamHP * 2) + defense} / ${variance * finalTypeMultiplier * reductionMultiplier * 0.8}`);
-            console.log(`   Mort: ${deathThreshold}`);
+            log(`🔧 DEBUG CALCUL AVEC GARDE:`);
+            log(`   Formule: ((dégâts * 2) + défense) / (variance * type_multi * réduction * 0.8)`);
+            log(`   Immunité: ((150 * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8)`);
+            log(`   Immunité: ${(150 * 2) + defense} / ${variance * finalTypeMultiplier * reductionMultiplier * 0.8}`);
+            log(`   Immunité: ${immunityThreshold}`);
+            log(`   Mort: ((${teamHP} * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8)`);
+            log(`   Mort: ${(teamHP * 2) + defense} / ${variance * finalTypeMultiplier * reductionMultiplier * 0.8}`);
+            log(`   Mort: ${deathThreshold}`);
         } else {
             // Sans garde: (attaque * variance * type_multi * réduction) - défense = dégâts
             // Pour seuil immunité : dégâts = 150
@@ -379,28 +403,28 @@ function calculateThresholds(defenseValue = null) {
             // Résolution: attaque = (teamHP + défense) / (variance * type_multi * réduction)
             deathThreshold = (teamHP + defense) / (variance * finalTypeMultiplier * reductionMultiplier);
             
-            console.log(`🔧 DEBUG CALCUL SANS GARDE:`);
-            console.log(`   Formule: (dégâts + défense) / (variance * type_multi * réduction)`);
-            console.log(`   Immunité: (150 + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier})`);
-            console.log(`   Immunité: ${150 + defense} / ${variance * finalTypeMultiplier * reductionMultiplier}`);
-            console.log(`   Immunité: ${immunityThreshold}`);
-            console.log(`   Mort: (${teamHP} + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier})`);
-            console.log(`   Mort: ${teamHP + defense} / ${variance * finalTypeMultiplier * reductionMultiplier}`);
-            console.log(`   Mort: ${deathThreshold}`);
+            log(`🔧 DEBUG CALCUL SANS GARDE:`);
+            log(`   Formule: (dégâts + défense) / (variance * type_multi * réduction)`);
+            log(`   Immunité: (150 + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier})`);
+            log(`   Immunité: ${150 + defense} / ${variance * finalTypeMultiplier * reductionMultiplier}`);
+            log(`   Immunité: ${immunityThreshold}`);
+            log(`   Mort: (${teamHP} + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier})`);
+            log(`   Mort: ${teamHP + defense} / ${variance * finalTypeMultiplier * reductionMultiplier}`);
+            log(`   Mort: ${deathThreshold}`);
         }
         
-        console.log(`📊 Calcul seuils détaillé:`);
-        console.log(`   Multiplicateur Classe/Type: ${classTypeMultiplier}`);
-        console.log(`   Bonus Défense Type: ${typeDefenseBonus}`);
-        console.log(`   Multiplicateur Final: ${finalTypeMultiplier}`);
-        console.log(`   Multiplicateur Réduction: ${reductionMultiplier}`);
-        console.log(`   Variance: ${variance} (utilisée dans le calcul des seuils)`);
-        console.log(`   Garde activée: ${guardActive}`);
-        console.log(`   Situation sélectionnée: ${guardSelection} (${classTypeMultipliers[guardSelection]?.description || 'inconnue'})`);
-        console.log(`   Formule immunité: ${guardActive ? '((150 * 2) + défense) / (variance * type_multi * réduction * 0.8)' : '(150 + défense) / (variance * type_multi * réduction)'}`);
-        console.log(`   Formule mort: ${guardActive ? '((teamHP * 2) + défense) / (variance * type_multi * réduction * 0.8)' : '(teamHP + défense) / (variance * type_multi * réduction)'}`);
-        console.log(`   Calcul immunité: ${guardActive ? `((150 * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8) = ${immunityThreshold}` : `(150 + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier}) = ${immunityThreshold}`}`);
-        console.log(`   Calcul mort: ${guardActive ? `((${teamHP} * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8) = ${deathThreshold}` : `(${teamHP} + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier}) = ${deathThreshold}`}`);
+        log(`📊 Calcul seuils détaillé:`);
+        log(`   Multiplicateur Classe/Type: ${classTypeMultiplier}`);
+        log(`   Bonus Défense Type: ${typeDefenseBonus}`);
+        log(`   Multiplicateur Final: ${finalTypeMultiplier}`);
+        log(`   Multiplicateur Réduction: ${reductionMultiplier}`);
+        log(`   Variance: ${variance} (utilisée dans le calcul des seuils)`);
+        log(`   Garde activée: ${guardActive}`);
+        log(`   Situation sélectionnée: ${guardSelection} (${classTypeMultipliers[guardSelection]?.description || 'inconnue'})`);
+        log(`   Formule immunité: ${guardActive ? '((150 * 2) + défense) / (variance * type_multi * réduction * 0.8)' : '(150 + défense) / (variance * type_multi * réduction)'}`);
+        log(`   Formule mort: ${guardActive ? '((teamHP * 2) + défense) / (variance * type_multi * réduction * 0.8)' : '(teamHP + défense) / (variance * type_multi * réduction)'}`);
+        log(`   Calcul immunité: ${guardActive ? `((150 * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8) = ${immunityThreshold}` : `(150 + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier}) = ${immunityThreshold}`}`);
+        log(`   Calcul mort: ${guardActive ? `((${teamHP} * 2) + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8) = ${deathThreshold}` : `(${teamHP} + ${defense}) / (${variance} * ${finalTypeMultiplier} * ${reductionMultiplier}) = ${deathThreshold}`}`);
         // Affichage des seuils
         const immunityEl = document.getElementById('immunityThreshold');
         const deathEl = document.getElementById('deathThreshold');
@@ -413,16 +437,16 @@ function calculateThresholds(defenseValue = null) {
             deathEl.textContent = Math.round(deathThreshold).toLocaleString() + ' ATT (' + deathWithVariance.toLocaleString() + ')';
         }
         
-        console.log(`📊 Seuils: Immunité=${Math.round(immunityThreshold).toLocaleString()}, Mort=${Math.round(deathThreshold).toLocaleString()}`);
+        log(`📊 Seuils: Immunité=${Math.round(immunityThreshold).toLocaleString()}, Mort=${Math.round(deathThreshold).toLocaleString()}`);
         
         // **VÉRIFICATION DES CALCULS**
-        console.log(`🔍 Vérification immunité à ${Math.round(immunityThreshold).toLocaleString()}:`);
+        log(`🔍 Vérification immunité à ${Math.round(immunityThreshold).toLocaleString()}:`);
         const verifyImmunity = calculateBattleDamage(immunityThreshold, defense, damageReduction, guardSelection, guardActive, typeDefense);
-        console.log(`   Dégâts calculés: ${verifyImmunity}`);
+        log(`   Dégâts calculés: ${verifyImmunity}`);
         
-        console.log(`🔍 Vérification mort à ${Math.round(deathThreshold).toLocaleString()}:`);
+        log(`🔍 Vérification mort à ${Math.round(deathThreshold).toLocaleString()}:`);
         const verifyDeath = calculateBattleDamage(deathThreshold, defense, damageReduction, guardSelection, guardActive, typeDefense);
-        console.log(`   Dégâts calculés: ${verifyDeath}`);
+        log(`   Dégâts calculés: ${verifyDeath}`);
         
         // Mettre à jour l'affichage des PV dans le seuil de mort
         const displayTeamHPEl = document.getElementById('displayTeamHP');
@@ -439,7 +463,7 @@ function calculateThresholds(defenseValue = null) {
 
 function generateDamageCurveChart(immunityThreshold, deathThreshold, defense, damageReduction, guardSelection, guardActive, typeDefense, teamHP) {
     try {
-        console.log('📈 Génération du graphique de courbe de dégâts...');
+        log('📈 Génération du graphique de courbe de dégâts...');
         
         // Configuration adaptative selon la taille d'écran
         const isMobile = window.innerWidth < 768;
@@ -933,7 +957,17 @@ function generateDamageCurveChart(immunityThreshold, deathThreshold, defense, da
         
         // Afficher le graphique avec configuration optimisée mobile - Inclure les zones d'arbre
         const allTraces = [...treeTraces, trace, immunityLine, deathLine, immunityMarker, deathMarker, bossTrace];
-        Plotly.newPlot('damageChart', allTraces, layout, config);
+
+        // Plotly.react met à jour un graphique déjà tracé en ne redessinant que
+        // ce qui a changé, là où newPlot le reconstruit intégralement. Au premier
+        // affichage seulement, on passe par newPlot.
+        const chartDiv = document.getElementById('damageChart');
+        const dejaTrace = chartDiv && chartDiv.data;
+        if (dejaTrace && typeof Plotly.react === 'function') {
+            Plotly.react('damageChart', allTraces, layout, config);
+        } else {
+            Plotly.newPlot('damageChart', allTraces, layout, config);
+        }
         
         // Forcer le graphique à rester dans son conteneur (pas de scroll)
         const chartElement = document.getElementById('damageChart');
@@ -1002,7 +1036,7 @@ function generateDamageCurveChart(immunityThreshold, deathThreshold, defense, da
             }, 300);
         });
         
-        console.log('✅ Graphique de courbe de dégâts généré avec succès');
+        log('✅ Graphique de courbe de dégâts généré avec succès');
     } catch (error) {
         console.error('❌ Erreur dans generateDamageCurveChart:', error);
     }
@@ -1010,7 +1044,7 @@ function generateDamageCurveChart(immunityThreshold, deathThreshold, defense, da
 
 function calculateBattleDamage(attack, defense, damageReduction, guardSelection, guardActive, typeDefense) {
     try {
-        console.log(`🔍 Calcul dégâts: ATT=${attack.toLocaleString()}, DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%, Garde=${guardActive}, Situation=${guardSelection}, TypeDef=${typeDefense}`);
+        if (DEBUG_LOGS) log(`🔍 Calcul dégâts: ATT=${attack.toLocaleString()}, DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%, Garde=${guardActive}, Situation=${guardSelection}, TypeDef=${typeDefense}`);
         
         // **APPLIQUER LES MULTIPLICATEURS CLASSE & TYPE selon le README**
         // Récupérer le multiplicateur selon la situation
@@ -1024,11 +1058,11 @@ function calculateBattleDamage(attack, defense, damageReduction, guardSelection,
         // car le 0.8 de la garde s'applique dans la formule elle-même
         if (guardSelection >= 0 && guardSelection < classTypeMultipliers.length) {
             classTypeMultiplier = classTypeMultipliers[guardSelection].multiplier;
-            console.log(`⚔️ Situation "${classTypeMultipliers[guardSelection].description}": multiplicateur ${classTypeMultiplier}`);
+            if (DEBUG_LOGS) log(`⚔️ Situation "${classTypeMultipliers[guardSelection].description}": multiplicateur ${classTypeMultiplier}`);
         }
         
         if (guardActive) {
-            console.log(`🛡️ Garde passive activée: 0.8 sera appliqué dans la formule (pas dans le multiplicateur)`);
+            if (DEBUG_LOGS) log(`🛡️ Garde passive activée: 0.8 sera appliqué dans la formule (pas dans le multiplicateur)`);
         }
         
         // **BONUS DE DÉFENSE DE TYPE (comme Python)**
@@ -1037,9 +1071,9 @@ function calculateBattleDamage(attack, defense, damageReduction, guardSelection,
         const typeDefenseBonus = (hasTypeAdvantageBeforeGuard && !guardActive) ? (typeDefense * 0.01) : 0;
         
         if (hasTypeAdvantageBeforeGuard && !guardActive) {
-            console.log(`🎯 Avantage de type détecté: bonus de défense type = ${typeDefense}% (${typeDefenseBonus})`);
+            if (DEBUG_LOGS) log(`🎯 Avantage de type détecté: bonus de défense type = ${typeDefense}% (${typeDefenseBonus})`);
         } else if (hasTypeAdvantageBeforeGuard && guardActive) {
-            console.log(`🛡️ Garde active: bonus de défense type ignoré (personnage immunisé aux effets de type/classe)`);
+            if (DEBUG_LOGS) log(`🛡️ Garde active: bonus de défense type ignoré (personnage immunisé aux effets de type/classe)`);
         }
         
         // Appliquer le bonus de défense de type au multiplicateur
@@ -1051,7 +1085,7 @@ function calculateBattleDamage(attack, defense, damageReduction, guardSelection,
         // Variance moyenne (comme Python)
         const variance = 1.015;
         
-        console.log(`📊 Multiplicateurs: Classe/Type=${classTypeMultiplier}, TypeDefBonus=${typeDefenseBonus}, Final=${finalTypeMultiplier}, Réduction=${reductionMultiplier}, Variance=${variance}`);
+        if (DEBUG_LOGS) log(`📊 Multiplicateurs: Classe/Type=${classTypeMultiplier}, TypeDefBonus=${typeDefenseBonus}, Final=${finalTypeMultiplier}, Réduction=${reductionMultiplier}, Variance=${variance}`);
         
         let damage;
         
@@ -1059,30 +1093,30 @@ function calculateBattleDamage(attack, defense, damageReduction, guardSelection,
             // **CALCUL AVEC GARDE ACTIVÉE**
             // Formule: ((attaque * variance * classe_type * réduction * 0.8) - défense) / 2
             let step1 = attack * variance * finalTypeMultiplier * reductionMultiplier * 0.8;
-            console.log(`🛡️ Étape 1 garde: ${attack.toLocaleString()} * ${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8 = ${step1.toLocaleString()}`);
+            if (DEBUG_LOGS) log(`🛡️ Étape 1 garde: ${attack.toLocaleString()} * ${variance} * ${finalTypeMultiplier} * ${reductionMultiplier} * 0.8 = ${step1.toLocaleString()}`);
             
             // Étape 2: Soustraire la défense
             let step2 = step1 - defense;
-            console.log(`🛡️ Étape 2: ${step1.toLocaleString()} - ${defense.toLocaleString()} = ${step2.toLocaleString()}`);
+            if (DEBUG_LOGS) log(`🛡️ Étape 2: ${step1.toLocaleString()} - ${defense.toLocaleString()} = ${step2.toLocaleString()}`);
             
             // Étape 3: Diviser par 2 (deuxième étape garde)
             damage = step2 / 2;
-            console.log(`🛡️ Étape 3: ${step2.toLocaleString()} / 2 = ${damage.toLocaleString()}`);
+            if (DEBUG_LOGS) log(`🛡️ Étape 3: ${step2.toLocaleString()} / 2 = ${damage.toLocaleString()}`);
         } else {
             // **CALCUL SANS GARDE ACTIVÉE**
             // Formule: (attaque * variance * (classe_type - bonus_type_def) * réduction) - défense
             damage = (attack * variance * finalTypeMultiplier * reductionMultiplier) - defense;
-            console.log(`⚔️ Sans garde: (${attack.toLocaleString()} * ${variance} * ${finalTypeMultiplier} * ${reductionMultiplier}) - ${defense.toLocaleString()} = ${damage.toLocaleString()}`);
+            if (DEBUG_LOGS) log(`⚔️ Sans garde: (${attack.toLocaleString()} * ${variance} * ${finalTypeMultiplier} * ${reductionMultiplier}) - ${defense.toLocaleString()} = ${damage.toLocaleString()}`);
         }
         
         // Dégâts minimum (<=150 devient 0)
         if (damage <= 150) {
-            console.log(`🛡️ Dégâts ≤ 150, immunité totale!`);
+            if (DEBUG_LOGS) log(`🛡️ Dégâts ≤ 150, immunité totale!`);
             return 0;
         }
 
         const finalDamage = Math.max(0, Math.floor(damage));
-        console.log(`🎯 RÉSULTAT FINAL: ${finalDamage.toLocaleString()}`);
+        if (DEBUG_LOGS) log(`🎯 RÉSULTAT FINAL: ${finalDamage.toLocaleString()}`);
         return finalDamage;
     } catch (error) {
         console.error('❌ Erreur dans calculateBattleDamage:', error);
@@ -1134,7 +1168,7 @@ function calculateDamage() {
         // S'assurer que la défense est à jour
         const defenseElement = document.getElementById('defenseValue');
         if (!defenseElement || defenseElement.textContent === '0') {
-            console.log('🔄 Défense non calculée, recalcul en cours...');
+            log('🔄 Défense non calculée, recalcul en cours...');
             calculateDefense();
         }
         
@@ -1144,7 +1178,7 @@ function calculateDamage() {
         const guardActive = document.getElementById('guardActive')?.checked || false;
         const typeDefense = parseInt(document.getElementById('typeDefense')?.value) || 5;
 
-        console.log(`💥 Calcul dégâts: ATT=${attackValue.toLocaleString()}, DEF=${defense.toLocaleString()}`);
+        log(`💥 Calcul dégâts: ATT=${attackValue.toLocaleString()}, DEF=${defense.toLocaleString()}`);
 
         const damage = calculateBattleDamage(attackValue, defense, damageReduction, guardSelection, guardActive, typeDefense);
 
@@ -1181,7 +1215,7 @@ function performChartUpdate() {
     isUpdating = true;
     
     try {
-        console.log('📈 Mise à jour du graphique...');
+        log('📈 Mise à jour du graphique...');
         
         // Récupérer les valeurs actuelles
         const defense = parseInt(document.getElementById('defenseValue')?.textContent.replace(/,/g, '')) || 0;
@@ -1190,9 +1224,9 @@ function performChartUpdate() {
         if (defense > 0) {
             // calculateThresholds génère déjà le graphique en interne, pas besoin de le faire ici
             // Il suffit de le laisser faire son travail
-            console.log('✅ Graphique mis à jour via calculateThresholds');
+            log('✅ Graphique mis à jour via calculateThresholds');
         } else {
-            console.log('⚠️ Défense = 0, pas de mise à jour du graphique');
+            log('⚠️ Défense = 0, pas de mise à jour du graphique');
         }
     } catch (error) {
         console.error('❌ Erreur dans performChartUpdate:', error);
@@ -1218,7 +1252,7 @@ function updateCharacterDisplay() {
             damageReductionDisplayEl.textContent = damageReduction + '%';
         }
         
-        console.log(`🔧 Interface mise à jour: DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%`);
+        log(`🔧 Interface mise à jour: DEF=${defense.toLocaleString()}, Réduction=${damageReduction}%`);
         
         // Si un boss est sélectionné, recalculer
         if (selectedBoss) {
@@ -1279,7 +1313,7 @@ function optimizeImageForDisplay(dataUrl, maxWidth = 300, maxHeight = 300) {
                 
                 // Convertir en JPEG avec qualité optimisée
                 const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                console.log(`🖼️ Image optimisée pour affichage: ${img.width}x${img.height} → ${width}x${height}`);
+                log(`🖼️ Image optimisée pour affichage: ${img.width}x${img.height} → ${width}x${height}`);
                 resolve(optimizedDataUrl);
             };
             
@@ -1315,7 +1349,7 @@ function createImageSaveOption(fileName, dataUrl) {
     localStorage.setItem('characterImages', JSON.stringify(imageRegistry));
     localStorage.setItem('currentImageKey', uniqueName);
     
-    console.log(`💾 Image sauvegardée avec la clé: ${uniqueName}`);
+    log(`💾 Image sauvegardée avec la clé: ${uniqueName}`);
 }
 
 // **FONCTION : RÉCUPÉRATION D'IMAGE PAR CLÉ**
@@ -1335,7 +1369,7 @@ function loadImageByKey(imageKey) {
             nameElement.value = imageData.name;
         }
         
-        console.log(`🖼️ Image chargée: ${imageData.name} (${imageKey})`);
+        log(`🖼️ Image chargée: ${imageData.name} (${imageKey})`);
         return true;
     }
     return false;
@@ -1603,7 +1637,7 @@ function loadConfiguration() {
                     } else {
                         element.value = data[key];
                     }
-                    console.log(`📥 Champ chargé: ${key} = ${data[key]}`);
+                    log(`📥 Champ chargé: ${key} = ${data[key]}`);
                 }
             });
             
@@ -1613,19 +1647,19 @@ function loadConfiguration() {
                 const imageElement = document.getElementById('characterImage');
                 if (imageElement) {
                     imageElement.src = data.characterImage;
-                    console.log('🖼️ Image du personnage restaurée depuis la sauvegarde locale');
+                    log('🖼️ Image du personnage restaurée depuis la sauvegarde locale');
                 }
             }
             
             // FORCER le recalcul après chargement
             setTimeout(() => {
-                console.log('🔄 FORÇAGE du recalcul après chargement...');
+                log('🔄 FORÇAGE du recalcul après chargement...');
                 const defense = calculateDefense();
-                console.log(`🛡️ Défense recalculée: ${defense.toLocaleString()}`);
+                log(`🛡️ Défense recalculée: ${defense.toLocaleString()}`);
                 updateThresholdAnalysis(defense);
                 updateCharacterDisplay();
                 updateChart();
-                console.log('✅ Configuration chargée et FORCÉE');
+                log('✅ Configuration chargée et FORCÉE');
             }, 200);
             
             // Animation de confirmation avec notification
@@ -1699,7 +1733,7 @@ function resetAll() {
 // **FONCTIONS D'EXPORT ET IMPORT DE FICHIERS**
 function exportConfiguration() {
     try {
-        console.log('🚀 Début de l\'export de configuration...');
+        log('🚀 Début de l\'export de configuration...');
         
         // Collecter toutes les données de configuration avec vérifications
         const config = {
@@ -1754,14 +1788,14 @@ function exportConfiguration() {
         
         if (currentImageKey) {
             config.characterImageKey = currentImageKey;
-            console.log('🔑 Clé d\'image incluse dans l\'export:', currentImageKey);
+            log('🔑 Clé d\'image incluse dans l\'export:', currentImageKey);
         } else if (savedImage && !savedImage.includes('unit.png') && !savedImage.includes('data:image/svg+xml')) {
             // Si pas de clé mais image personnalisée, l'inclure directement
             config.characterImageData = savedImage;
-            console.log('🖼️ Image incluse directement dans l\'export');
+            log('🖼️ Image incluse directement dans l\'export');
         }
 
-        console.log('📊 Configuration collectée:', config);
+        log('📊 Configuration collectée:', config);
 
         // Créer le nom du fichier
         const characterName = config.characterName.replace(/[^a-zA-Z0-9]/g, '_');
@@ -1792,7 +1826,7 @@ function exportConfiguration() {
 
         createNotification('✅ Fiche exportée!', `Le fichier "${fileName}" a été téléchargé avec succès.`, 'success');
 
-        console.log(`📄 Configuration exportée: ${fileName}`);
+        log(`📄 Configuration exportée: ${fileName}`);
     } catch (error) {
         console.error('❌ Erreur lors de l\'export:', error);
         createNotification('❌ Erreur d\'export', 'Impossible d\'exporter le fichier de configuration.', 'error');
@@ -1827,13 +1861,13 @@ function importConfiguration() {
                     
                     // 1. Essayer de charger par clé d'image
                     if (config.characterImageKey) {
-                        console.log('🔑 Tentative de chargement par clé d\'image:', config.characterImageKey);
+                        log('🔑 Tentative de chargement par clé d\'image:', config.characterImageKey);
                         imageRestored = loadImageByKey(config.characterImageKey);
                     }
                     
                     // 2. Si pas de clé, essayer l'image incluse directement
                     if (!imageRestored && config.characterImageData) {
-                        console.log('🖼️ Chargement de l\'image incluse...');
+                        log('🖼️ Chargement de l\'image incluse...');
                         localStorage.setItem('characterImage', config.characterImageData);
                         const imageElement = document.getElementById('characterImage');
                         if (imageElement) {
@@ -1844,7 +1878,7 @@ function importConfiguration() {
                     
                     // 3. Fallback vers l'ancien système (characterImage)
                     if (!imageRestored && config.characterImage) {
-                        console.log('🖼️ Chargement via ancien système...');
+                        log('🖼️ Chargement via ancien système...');
                         localStorage.setItem('characterImage', config.characterImage);
                         const imageElement = document.getElementById('characterImage');
                         if (imageElement) {
@@ -1863,7 +1897,7 @@ function importConfiguration() {
                             } else {
                                 element.value = config[key];
                             }
-                            console.log(`📥 Champ restauré: ${key} = ${config[key]}`);
+                            log(`📥 Champ restauré: ${key} = ${config[key]}`);
                         }
                     });
                     
@@ -1871,7 +1905,7 @@ function importConfiguration() {
                     const teamHPElement = document.getElementById('teamHP');
                     if (teamHPElement && !config.teamHP) {
                         teamHPElement.value = 850000; // Valeur par défaut
-                        console.log(`⚠️ teamHP manquant, valeur par défaut appliquée: 850000`);
+                        log(`⚠️ teamHP manquant, valeur par défaut appliquée: 850000`);
                     }
 
                     // Sauvegarder le nom
@@ -1881,31 +1915,31 @@ function importConfiguration() {
                         if (characterNameEl) {
                             characterNameEl.value = config.characterName;
                         }
-                        console.log(`📝 Nom du personnage restauré: ${config.characterName}`);
+                        log(`📝 Nom du personnage restauré: ${config.characterName}`);
                     }
 
                     // Recalculer TOUT après import - FORCER le recalcul immédiat sans debounce
                     setTimeout(() => {
-                        console.log('🔄 FORÇAGE du recalcul complet après importation...');
-                        console.log('📊 Valeurs chargées:');
-                        console.log('   - baseDef:', document.getElementById('baseDef')?.value);
-                        console.log('   - leader:', document.getElementById('leader')?.value);
-                        console.log('   - base:', document.getElementById('base')?.value);
-                        console.log('   - support:', document.getElementById('support')?.value);
+                        log('🔄 FORÇAGE du recalcul complet après importation...');
+                        log('📊 Valeurs chargées:');
+                        log('   - baseDef:', document.getElementById('baseDef')?.value);
+                        log('   - leader:', document.getElementById('leader')?.value);
+                        log('   - base:', document.getElementById('base')?.value);
+                        log('   - support:', document.getElementById('support')?.value);
                         
                         // Mettre à jour le dropdown de complétion d'arbre selon le type
                         updateTreeCompletionOptions();
                         
                         // FORCER le calcul direct sans attendre le debounce
                         const defense = calculateDefense();
-                        console.log(`🛡️ Défense recalculée: ${defense.toLocaleString()}`);
+                        log(`🛡️ Défense recalculée: ${defense.toLocaleString()}`);
                         
                         // FORCER la mise à jour de tous les éléments
                         updateThresholdAnalysis(defense);
                         updateCharacterDisplay();
                         updateChart();
                         
-                        console.log('✅ Mise à jour FORCÉE terminée');
+                        log('✅ Mise à jour FORCÉE terminée');
                     }, 200);
 
                     // Animation de confirmation avec notification
@@ -1920,7 +1954,7 @@ function importConfiguration() {
                         }, 2000);
                     }
 
-                    console.log(`📄 Configuration importée: ${config.characterName} (${config.timestamp})`);
+                    log(`📄 Configuration importée: ${config.characterName} (${config.timestamp})`);
                     
                     const message = imageRestored 
                         ? `La configuration "${config.characterName}" a été chargée avec son image.`
@@ -1986,7 +2020,7 @@ function optimizeImageForSharing(dataUrl, maxSize = 50000) {
                 } while (optimizedDataUrl.length > maxSize && quality > 0.1);
                 
                 if (optimizedDataUrl.length <= maxSize) {
-                    console.log(`🖼️ Image optimisée: ${img.width}x${img.height} → ${width}x${height}, ${dataUrl.length} → ${optimizedDataUrl.length} bytes`);
+                    log(`🖼️ Image optimisée: ${img.width}x${img.height} → ${width}x${height}, ${dataUrl.length} → ${optimizedDataUrl.length} bytes`);
                     resolve(optimizedDataUrl);
                 } else {
                     console.warn('⚠️ Impossible d\'optimiser suffisamment l\'image');
@@ -2010,7 +2044,7 @@ function optimizeImageForSharing(dataUrl, maxSize = 50000) {
 // **FONCTION DE PARTAGE AMÉLIORÉE**
 async function shareConfiguration(buttonElement = null) {
     try {
-        console.log('🔗 Début du processus de partage...');
+        log('🔗 Début du processus de partage...');
         
         // Collecter la configuration actuelle
         const config = {
@@ -2050,24 +2084,24 @@ async function shareConfiguration(buttonElement = null) {
 
         // Vérifier si on a une image personnalisée (pas l'image par défaut)
         const savedImage = localStorage.getItem('characterImage');
-        console.log('🔍 Image sauvegardée détectée:', savedImage ? `${savedImage.substring(0, 50)}...` : 'Aucune');
+        log('🔍 Image sauvegardée détectée:', savedImage ? `${savedImage.substring(0, 50)}...` : 'Aucune');
         
         const isDefaultImage = !savedImage || 
                                savedImage.includes('unit.png') || 
                                savedImage.includes('data:image/svg+xml') ||
                                savedImage.includes('imageBoss/unit.png');
         
-        console.log('🎯 Est-ce l\'image par défaut?', isDefaultImage);
+        log('🎯 Est-ce l\'image par défaut?', isDefaultImage);
         
         if (!isDefaultImage) {
             // Inclure l'image personnalisée
             config.characterImage = savedImage;
-            console.log('🖼️ Image personnalisée incluse dans la configuration');
+            log('🖼️ Image personnalisée incluse dans la configuration');
         } else {
-            console.log('📷 Image par défaut détectée, partage des paramètres uniquement');
+            log('📷 Image par défaut détectée, partage des paramètres uniquement');
         }
 
-        console.log('📊 Configuration à partager:', config);
+        log('📊 Configuration à partager:', config);
 
         // Créer un lien partageable (encoder en base64 avec gestion des caractères spéciaux)
         const configString = JSON.stringify(config);
@@ -2110,7 +2144,7 @@ async function shareConfiguration(buttonElement = null) {
                         const optimizedShareUrl = `${window.location.origin}${window.location.pathname}?config=${optimizedEncodedConfig}`;
                         
                         if (optimizedShareUrl.length <= 2000) {
-                            console.log('✅ URL créée avec image optimisée');
+                            log('✅ URL créée avec image optimisée');
                             shareUrl = optimizedShareUrl;
                             imageIncluded = true;
                         } else {
@@ -2139,7 +2173,7 @@ async function shareConfiguration(buttonElement = null) {
                     const shareUrlWithoutImage = `${window.location.origin}${window.location.pathname}?config=${encodedConfigWithoutImage}`;
                     
                     if (shareUrlWithoutImage.length <= 2000) {
-                        console.log('✅ URL raccourcie créée sans image');
+                        log('✅ URL raccourcie créée sans image');
                         shareUrl = shareUrlWithoutImage;
                         imageIncluded = false;
                     } else {
@@ -2163,7 +2197,7 @@ async function shareConfiguration(buttonElement = null) {
                 const shareUrlWithoutImage = `${window.location.origin}${window.location.pathname}?config=${encodedConfigWithoutImage}`;
                 
                 if (shareUrlWithoutImage.length <= 2000) {
-                    console.log('✅ URL raccourcie créée sans image');
+                    log('✅ URL raccourcie créée sans image');
                     shareUrl = shareUrlWithoutImage;
                     imageIncluded = false;
                 } else {
@@ -2172,8 +2206,8 @@ async function shareConfiguration(buttonElement = null) {
             }
         }
 
-        console.log(`🔗 URL générée (${shareUrl.length} caractères)`);
-        console.log(`🖼️ Image incluse: ${imageIncluded ? 'Oui' : 'Non'}`);
+        log(`🔗 URL générée (${shareUrl.length} caractères)`);
+        log(`🖼️ Image incluse: ${imageIncluded ? 'Oui' : 'Non'}`);
 
         // Fonction pour afficher le succès
         function showSuccess(btn) {
@@ -2191,12 +2225,12 @@ async function shareConfiguration(buttonElement = null) {
 
         // Récupérer le bouton de partage - utiliser le paramètre ou chercher dans le DOM
         const shareBtn = buttonElement || document.querySelector('button[onclick*="shareConfiguration"]');
-        console.log('🎯 Bouton trouvé:', shareBtn ? 'Oui' : 'Non');
+        log('🎯 Bouton trouvé:', shareBtn ? 'Oui' : 'Non');
 
         // Méthode de fallback
         function fallbackCopy() {
             try {
-                console.log('� Utilisation de la méthode fallback...');
+                log('� Utilisation de la méthode fallback...');
                 
                 // Créer un élément textarea temporaire
                 const textArea = document.createElement('textarea');
@@ -2215,7 +2249,7 @@ async function shareConfiguration(buttonElement = null) {
                 document.body.removeChild(textArea);
                 
                 if (successful) {
-                    console.log('✅ Lien copié avec succès via execCommand');
+                    log('✅ Lien copié avec succès via execCommand');
                     showSuccess(shareBtn);
                     
                     const message = imageIncluded 
@@ -2242,9 +2276,9 @@ async function shareConfiguration(buttonElement = null) {
 
         // Essayer d'abord l'API Clipboard moderne si disponible
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            console.log('🔗 Tentative avec l\'API Clipboard moderne...');
+            log('🔗 Tentative avec l\'API Clipboard moderne...');
             navigator.clipboard.writeText(shareUrl).then(() => {
-                console.log('✅ Lien copié avec succès via l\'API Clipboard');
+                log('✅ Lien copié avec succès via l\'API Clipboard');
                 showSuccess(shareBtn);
                 
                 const message = imageIncluded 
@@ -2257,11 +2291,11 @@ async function shareConfiguration(buttonElement = null) {
                 fallbackCopy();
             });
         } else {
-            console.log('🔗 API Clipboard non disponible, utilisation du fallback...');
+            log('🔗 API Clipboard non disponible, utilisation du fallback...');
             fallbackCopy();
         }
 
-        console.log(`🔗 Configuration partagée: ${shareUrl}`);
+        log(`🔗 Configuration partagée: ${shareUrl}`);
     } catch (error) {
         console.error('❌ Erreur lors du partage:', error);
         createNotification('❌ Erreur de partage', `Impossible de créer le lien de partage: ${error.message}`, 'error');
@@ -2377,11 +2411,11 @@ function createNotification(title, message, type = 'info') {
 
 // **INITIALISATION AU CHARGEMENT DE LA PAGE**
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initialisation du calculateur Dokkan Battle...');
+    log('🚀 Initialisation du calculateur Dokkan Battle...');
     
     // Détection mobile pour optimisations spécifiques
     const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log(`📱 Détection appareil: ${isMobile ? 'Mobile' : 'Desktop'}`);
+    log(`📱 Détection appareil: ${isMobile ? 'Mobile' : 'Desktop'}`);
     
     // Ajouter une classe CSS pour les mobiles
     if (isMobile) {
@@ -2414,7 +2448,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resizeTimeout = setTimeout(() => {
             const chartElement = document.getElementById('damageChart');
             if (chartElement && window.Plotly) {
-                console.log('🔄 Redimensionnement du graphique...');
+                log('🔄 Redimensionnement du graphique...');
                 Plotly.Plots.resize('damageChart');
             }
         }, 300);
@@ -2453,34 +2487,34 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 1. Essayer de charger par clé d'image (nouveau système)
             if (config.characterImageKey) {
-                console.log('🔑 Tentative de chargement par clé d\'image:', config.characterImageKey);
+                log('🔑 Tentative de chargement par clé d\'image:', config.characterImageKey);
                 imageRestored = loadImageByKey(config.characterImageKey);
                 if (imageRestored) {
-                    console.log('✅ Image restaurée via clé d\'image');
+                    log('✅ Image restaurée via clé d\'image');
                 }
             }
             
             // 2. Si pas de clé, essayer l'image optimisée incluse dans le lien
             if (!imageRestored && config.characterImageData) {
-                console.log('🖼️ Chargement de l\'image optimisée depuis le lien...');
+                log('🖼️ Chargement de l\'image optimisée depuis le lien...');
                 const imageElement = document.getElementById('characterImage');
                 if (imageElement) {
                     imageElement.src = config.characterImageData;
                     localStorage.setItem('characterImage', config.characterImageData);
                     imageRestored = true;
-                    console.log('✅ Image optimisée restaurée depuis le lien partagé');
+                    log('✅ Image optimisée restaurée depuis le lien partagé');
                 }
             }
             
             // 3. Si pas d'image optimisée, essayer l'image complète (ancien système)
             if (!imageRestored && config.characterImage) {
-                console.log('🖼️ Chargement de l\'image complète depuis le lien...');
+                log('🖼️ Chargement de l\'image complète depuis le lien...');
                 const imageElement = document.getElementById('characterImage');
                 if (imageElement) {
                     imageElement.src = config.characterImage;
                     localStorage.setItem('characterImage', config.characterImage);
                     imageRestored = true;
-                    console.log('✅ Image complète restaurée depuis le lien partagé');
+                    log('✅ Image complète restaurée depuis le lien partagé');
                 }
             }
             
@@ -2492,7 +2526,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 message = `Configuration "${config.characterName}" chargée (image non disponible dans ce lien).`;
                 notificationType = 'info';
-                console.log('ℹ️ Aucune image disponible dans la configuration partagée');
+                log('ℹ️ Aucune image disponible dans la configuration partagée');
             }
             
             // Recalculer après chargement
@@ -2501,7 +2535,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 createNotification('✅ Configuration partagée chargée!', message, notificationType);
             }, 100);
             
-            console.log(`🔗 Configuration partagée chargée: ${config.characterName} (version ${config.version || '1.0'})`);
+            log(`🔗 Configuration partagée chargée: ${config.characterName} (version ${config.version || '1.0'})`);
         } catch (error) {
             console.error('❌ Erreur lors du chargement de la configuration partagée:', error);
             createNotification('❌ Lien invalide', 'Le lien de partage est corrompu ou invalide.', 'error');
@@ -2524,14 +2558,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Créer des versions debounced pour éviter les calculs trop fréquents
+    // Versions temporisées, pour ne recalculer qu'une fois la saisie terminée.
+    // Le rendu du graphique étant descendu à environ 140 ms, un délai court
+    // suffit : la réponse paraît immédiate sans recalculer à chaque frappe.
     const debouncedCalculateDefense = debounce(() => {
         calculateDefense();
-    }, isMobile ? 500 : 300); // Plus de délai sur mobile pour de meilleures performances
-    
+    }, isMobile ? 300 : 150); // Délai un peu plus long sur mobile, moins puissant
+
     const debouncedCalculateDamage = debounce(() => {
         calculateDamage();
-    }, isMobile ? 500 : 300);
+    }, isMobile ? 300 : 150);
     
     // Ajouter des événements pour recalculer automatiquement
     const inputs = document.querySelectorAll('input, select');
@@ -2539,12 +2575,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Événements pour tous les inputs qui affectent la défense
         if (input.id !== 'attackValue' && input.id !== 'damageResult') {
             input.addEventListener('input', function() {
-                console.log(`🔄 Input changé: ${input.id} = ${input.value || input.checked}`);
+                log(`🔄 Input changé: ${input.id} = ${input.value || input.checked}`);
                 debouncedCalculateDefense();
             });
             
             input.addEventListener('change', function() {
-                console.log(`🔄 Change déclenché: ${input.id} = ${input.value || input.checked}`);
+                log(`🔄 Change déclenché: ${input.id} = ${input.value || input.checked}`);
                 debouncedCalculateDefense();
             });
         }
@@ -2570,59 +2606,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (guardSelectionEl) {
         guardSelectionEl.addEventListener('change', function() {
-            console.log(`🔄 Situation classe & type changée: ${this.value}`);
+            log(`🔄 Situation classe & type changée: ${this.value}`);
             debouncedCalculateDefense();
         });
     }
     
     if (guardActiveEl) {
         guardActiveEl.addEventListener('change', function() {
-            console.log(`🔄 Garde passive changée: ${this.checked}`);
+            log(`🔄 Garde passive changée: ${this.checked}`);
             debouncedCalculateDefense();
         });
     }
 
-    // Événement pour les PV de la team
-    const teamHPEl = document.getElementById('teamHP');
-    if (teamHPEl) {
-        teamHPEl.addEventListener('input', function() {
-            console.log(`❤️ PV modifiés: ${this.value}`);
-            calculateDefense(); // Recalcule tout y compris les seuils
-        });
-        teamHPEl.addEventListener('change', function() {
-            calculateDefense();
-        });
-    }
-
-    // Événement pour la réduction de dégâts
-    const damageReductionEl = document.getElementById('damageReduction');
-    if (damageReductionEl) {
-        damageReductionEl.addEventListener('input', function() {
-            console.log(`🛡️ Réduction de dégâts modifiée: ${this.value}%`);
-            updateThresholdAnalysis(); // Met à jour seuils et graphique
-        });
-        damageReductionEl.addEventListener('change', function() {
-            updateThresholdAnalysis();
-        });
-    }
-
-    // Événement pour la défense de type
-    const typeDefenseEl = document.getElementById('typeDefense');
-    if (typeDefenseEl) {
-        typeDefenseEl.addEventListener('input', function() {
-            console.log(`⚡ Défense de type modifiée: ${this.value}`);
-            updateThresholdAnalysis(); // Met à jour seuils et graphique
-        });
-        typeDefenseEl.addEventListener('change', function() {
-            updateThresholdAnalysis();
-        });
-    }
+    // Les champs « PV de la team », « Réduction de dégâts » et « Défense de
+    // type » avaient auparavant leurs propres écouteurs, qui relançaient un
+    // rendu complet du graphique à chaque frappe, sans temporisation. Comme
+    // l'écouteur générique ci-dessus les couvre déjà (et que calculateDefense
+    // met à jour les seuils et le graphique), ils faisaient double travail :
+    // chaque caractère saisi provoquait deux rendus au lieu d'un seul différé.
 
     // Calcul initial avec un délai pour s'assurer que tout est chargé
     setTimeout(() => {
-        console.log('⚡ Lancement du calcul initial...');
+        log('⚡ Lancement du calcul initial...');
         calculateDefense();
-        console.log('✅ Initialisation terminée');
+        log('✅ Initialisation terminée');
     }, isMobile ? 500 : 200); // Plus de délai sur mobile
 });
 
@@ -2631,7 +2638,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // **FONCTION : SAUVEGARDER LA FICHE ACTUELLE**
 function saveCurrentCalculation(buttonElement = null) {
     try {
-        console.log('💾 Sauvegarde de la fiche actuelle...');
+        log('💾 Sauvegarde de la fiche actuelle...');
         
         // Récupérer toutes les données actuelles
         const calculation = {
@@ -2725,7 +2732,7 @@ function saveCurrentCalculation(buttonElement = null) {
             }, 2000);
         }
         
-        console.log(`💾 Fiche sauvegardée: ${calculation.name} (ID: ${calculation.id})`);
+        log(`💾 Fiche sauvegardée: ${calculation.name} (ID: ${calculation.id})`);
     } catch (error) {
         console.error('❌ Erreur lors de la sauvegarde de fiche:', error);
         createNotification('❌ Erreur de sauvegarde', 'Impossible de sauvegarder la fiche.', 'error');
@@ -3042,7 +3049,7 @@ function loadCalculation(calculationId) {
                     } else {
                         element.value = calculation[key];
                     }
-                    console.log(`📥 Champ restauré: ${key} = ${calculation[key]}`);
+                    log(`📥 Champ restauré: ${key} = ${calculation[key]}`);
                 }
             }
         });
@@ -3053,7 +3060,7 @@ function loadCalculation(calculationId) {
             characterNameElement.value = calculation.name;
             // Mettre à jour le localStorage aussi
             localStorage.setItem('characterName', calculation.name);
-            console.log(`📝 Nom restauré: ${calculation.name}`);
+            log(`📝 Nom restauré: ${calculation.name}`);
         }
         
         // Charger l'image si disponible
@@ -3069,17 +3076,17 @@ function loadCalculation(calculationId) {
         
         // FORCER le recalcul de la défense
         setTimeout(() => {
-            console.log('🔄 FORÇAGE du recalcul après chargement de la fiche...');
+            log('🔄 FORÇAGE du recalcul après chargement de la fiche...');
             
             // Mettre à jour le dropdown de complétion d'arbre selon le type
             updateTreeCompletionOptions();
             
             const defense = calculateDefense();
-            console.log(`🛡️ Défense recalculée: ${defense.toLocaleString()}`);
+            log(`🛡️ Défense recalculée: ${defense.toLocaleString()}`);
             updateThresholdAnalysis(defense);
             updateCharacterDisplay();
             updateChart();
-            console.log('✅ Fiche chargée et FORCÉE');
+            log('✅ Fiche chargée et FORCÉE');
         }, 200);
         
         // Fermer le modal
@@ -3087,7 +3094,7 @@ function loadCalculation(calculationId) {
         
         createNotification('✅ Fiche chargée!', `La fiche "${calculation.name}" a été chargée avec succès.`, 'success');
         
-        console.log(`📁 Fiche chargée: ${calculation.name} (ID: ${calculation.id})`);
+        log(`📁 Fiche chargée: ${calculation.name} (ID: ${calculation.id})`);
     } catch (error) {
         console.error('❌ Erreur lors du chargement de fiche:', error);
         createNotification('❌ Erreur de chargement', 'Impossible de charger la fiche.', 'error');
@@ -3117,7 +3124,7 @@ function deleteCalculation(calculationId) {
             
             createNotification('✅ Fiche supprimée!', `La fiche "${calculationName}" a été supprimée.`, 'success');
             
-            console.log(`🗑️ Fiche supprimée: ${calculationName} (ID: ${calculationId})`);
+            log(`🗑️ Fiche supprimée: ${calculationName} (ID: ${calculationId})`);
         }
     } catch (error) {
         console.error('❌ Erreur lors de la suppression de fiche:', error);
@@ -3153,7 +3160,7 @@ function duplicateCalculation(calculationId) {
         
         createNotification('✅ Fiche dupliquée!', `La fiche "${duplicatedCalculation.name}" a été créée.`, 'success');
         
-        console.log(`📋 Fiche dupliquée: ${calculation.name} → ${duplicatedCalculation.name}`);
+        log(`📋 Fiche dupliquée: ${calculation.name} → ${duplicatedCalculation.name}`);
     } catch (error) {
         console.error('❌ Erreur lors de la duplication de fiche:', error);
         createNotification('❌ Erreur de duplication', 'Impossible de dupliquer la fiche.', 'error');
@@ -3166,7 +3173,7 @@ function clearAllCalculations() {
         localStorage.removeItem('savedCalculations');
         closeCalculationsModal();
         createNotification('✅ Fiches supprimées!', 'Toutes les fiches ont été supprimées.', 'success');
-        console.log('🗑️ Toutes les fiches ont été supprimées');
+        log('🗑️ Toutes les fiches ont été supprimées');
     }
 }
 
@@ -3319,7 +3326,7 @@ function importAllCalculations() {
                         
                         totalImported += fileImported;
                         totalSkipped += fileSkipped;
-                        console.log(`Fichier ${file.name}: ${fileImported} importées, ${fileSkipped} ignorées`);
+                        log(`Fichier ${file.name}: ${fileImported} importées, ${fileSkipped} ignorées`);
                         
                     } catch (parseError) {
                         console.error(`Erreur dans ${file.name}:`, parseError);
@@ -3550,7 +3557,7 @@ document.addEventListener('DOMContentLoaded', function() {
     displayCustomBosses();
     
     // Debug: afficher le nombre total de boss
-    console.log(`📊 Boss chargés: ${bosses.length} (${defaultBosses.length} par défaut + ${bosses.length - defaultBosses.length} personnalisés)`);
+    log(`📊 Boss chargés: ${bosses.length} (${defaultBosses.length} par défaut + ${bosses.length - defaultBosses.length} personnalisés)`);
 });
 
 // ============================
@@ -3883,7 +3890,7 @@ function toggleFullscreen() {
     const isFullscreen = chartContainer.classList.contains('fullscreen');
     
     if (isFullscreen) {
-        console.log('📺 Passage en mode plein écran');
+        log('📺 Passage en mode plein écran');
         // Changer l'icône et le texte
         fullscreenIcon.textContent = '⤬';
         
@@ -3897,7 +3904,7 @@ function toggleFullscreen() {
             }
         }, 100);
     } else {
-        console.log('🖥️ Sortie du mode plein écran');
+        log('🖥️ Sortie du mode plein écran');
         // Restaurer l'icône et le texte
         fullscreenIcon.textContent = '⛶';
         
