@@ -1,35 +1,124 @@
 <?php
-// filepath: c:\wamp64\www\Bippert\calculateur dokkan battle\index.php
+//dokkanbattle-calculateurdef.page.gd
+//github.com/Victorius500
+require_once 'config.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐉 Calculateur Dokkan Battle - Def            <div class="damage-curve-analysis">
-                <h3>📈 COURBE DE DÉGÂTS DÉFENSIFS</h3>
-                
-                <!-- Section des boss avec images -->
-                <div class="boss-indicators" id="bossIndicators">
-                    <!-- Les indicateurs de boss seront générés ici -->
-                </div>
-                
-                <div class="chart-container">
-                    <div id="damageChart" style="width:100%;height:400px;"></div>
-                </div>Calculator</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="java.js"></script>
+    <title>🐉 Calculateur Dokkan Battle - Defense Calculator</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="🛡️ Calculateur de défense avancé pour Dragon Ball Z Dokkan Battle. Calculez la défense de vos personnages, analysez les seuils de survie contre tous les boss, créez vos propres boss personnalisés. Graphiques interactifs, système de sauvegarde et guides détaillés inclus.">
+    <meta name="keywords" content="dokkan battle, calculateur défense, dragon ball z, dbz, calculatrice dokkan, défense calculator, seuils dokkan, boss dokkan, red zone, difficult event, defense calculation">
+    <meta name="author" content="Victorius500">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="French">
+    
+    <!-- Open Graph Meta Tags pour les réseaux sociaux -->
+    <meta property="og:title" content="🐉 Calculateur Dokkan Battle - Defense Calculator">
+    <meta property="og:description" content="🛡️ Calculateur de défense avancé pour Dragon Ball Z Dokkan Battle. Analysez vos personnages, calculez les seuils de survie et optimisez votre stratégie défensive.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dokkanbattle-calculateurdef.page.gd">
+    <meta property="og:site_name" content="Dokkan Battle Defense Calculator">
+    <meta property="og:locale" content="fr_FR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🐉 Calculateur Dokkan Battle - Defense Calculator">
+    <meta name="twitter:description" content="🛡️ Calculateur de défense avancé pour Dragon Ball Z Dokkan Battle. Analysez vos personnages et optimisez votre stratégie défensive.">
+    
+    <!-- Structured Data pour Google -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Calculateur Dokkan Battle Defense",
+        "description": "Calculateur de défense avancé pour Dragon Ball Z Dokkan Battle permettant d'analyser les personnages et calculer les seuils de survie",
+        "url": "https://dokkanbattle-calculateurdef.page.gd",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Victorius500"
+        }
+    }
+    </script>
+    <!-- Favicons Shenron -->
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
+    <link rel="icon" type="image/svg+xml" href="assets/images/shenron-favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon-32x32.png">
+    <!-- Plotly épinglé sur une version fixe + contrôle d'intégrité (SRI) :
+         évite qu'une modification du CDN injecte du code arbitraire sur le site. -->
+    <script src="https://cdn.plot.ly/plotly-1.58.5.min.js"
+            integrity="sha384-W7FXNbEY44RgDK8MunBe4gETSKi3Qo2bJAXX3PH8v5l3hdabFb9dbCIn3X69OFjX"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/java.js"></script>
+    
+    <!-- Optimisations graphique mobile -->
+    <style>
+        @media (max-width: 768px) {
+            /* Force le graphique à prendre tout l'espace disponible */
+            #damageChart {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            /* Améliore l'affichage des axes sur mobile */
+            .plotly .xaxislayer-above text,
+            .plotly .yaxislayer-above text {
+                font-size: 9px !important;
+            }
+            
+            /* Optimise le titre du graphique */
+            .plotly .gtitle {
+                font-size: 13px !important;
+            }
+            
+            /* Améliore les légendes */
+            .chart-legend {
+                flex-direction: column !important;
+                gap: 6px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Très petits écrans - optimisation maximale */
+            .plotly .xaxislayer-above text,
+            .plotly .yaxislayer-above text {
+                font-size: 8px !important;
+            }
+            
+            .plotly .gtitle {
+                font-size: 11px !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <a href="Boss.php" class="boss-manager-btn" title="Gérer les boss du graphique">👹 GÉRER LES BOSS</a>
+            <button class="update-log-btn" onclick="showUpdateLog()" title="Voir les mises à jour">📋 UPDATE LOG</button>
             <h1>🐉 DOKKAN BATTLE</h1>
             <p>🛡️ Calculateur de Défense Ultime 🛡️</p>
         </div>
 
         <div class="main-grid">
+
+        
         <div class="main-container">
             <!-- Panel de gauche : Personnage + Défense + Calculateur -->
             <div class="left-panel">
@@ -37,10 +126,11 @@
                 <div class="character-display">
                     <h3>🎯 Personnage Calculé</h3>
                     <div class="character-image-container">
-                        <img id="characterImage" src="imageBoss/unit.png" alt="Personnage" class="character-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiMzMzMiLz48dGV4dCB4PSI1MCIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2ZmZDcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Pz88L3RleHQ+PC9zdmc+'">
+                        <img id="characterImage" src="assets/images/imageBoss/unit.png" alt="Personnage" class="character-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiMzMzMiLz48dGV4dCB4PSI1MCIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2ZmZDcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Pz88L3RleHQ+PC9zdmc+'">
                     </div>
                     <br>
                     <button class="upload-btn" onclick="document.getElementById('imageUpload').click()">📷 CHANGER IMAGE</button>
+                    <button class="upload-btn secondary" onclick="showSavedCalculations()">� FICHES SAUVÉES</button>
                     <input type="file" id="imageUpload" class="file-input" accept="image/*" onchange="handleImageUpload(event)">
                     <input type="text" id="characterName" class="character-name" placeholder="Nom du personnage" value="Personnage Mystère">
                 </div>
@@ -60,7 +150,9 @@
                 <div class="parameters-grid">
                     <!-- Paramètres de base -->
                     <div class="param-group">
-                        <h3>📊 Statistiques de Base</h3>
+                        <h3>📊 Statistiques de Base
+                            <button class="help-btn" onclick="showHelp('base-stats')" title="Aide">❓</button>
+                        </h3>
                         <div class="form-row">
                             <label>🛡️ DÉF de base:</label>
                             <input type="number" id="baseDef" value="9338" min="0">
@@ -71,12 +163,12 @@
                         </div>
                         <div class="form-row">
                             <label>🎯 Type:</label>
-                            <select id="typeSelection">
-                                <option value="TEC">🔥 TEC</option>
-                                <option value="AGI">💨 AGI</option>
-                                <option value="PUI">💪 PUI</option>
-                                <option value="END">🛡️ END</option>
-                                <option value="INT">🧠 INT</option>
+                            <select id="typeSelection" class="type-selector">
+                                <option value="TEC" data-icon="assets/images/type-icons/tec.svg">TEC</option>
+                                <option value="AGI" data-icon="assets/images/type-icons/agi.svg">AGL</option>
+                                <option value="PUI" data-icon="assets/images/type-icons/pui.svg">STR</option>
+                                <option value="END" data-icon="assets/images/type-icons/end.svg">PHY</option>
+                                <option value="INT" data-icon="assets/images/type-icons/int.svg">INT</option>
                             </select>
                         </div>
                         <div class="checkbox-group">
@@ -91,7 +183,9 @@
 
                 <!-- Leader et boosts -->
                 <div class="param-group">
-                    <h3>👑 Leader & Boosts</h3>
+                    <h3>👑 Leader & Boosts
+                        <button class="help-btn" onclick="showHelp('leader-boosts')" title="Aide">❓</button>
+                    </h3>
                     <div class="form-row">
                         <label>👑 Leader (%):</label>
                         <input type="number" id="leader" value="220" min="0" max="500">
@@ -122,7 +216,9 @@
 
                 <!-- Boosts multiplicatifs -->
                 <div class="param-group">
-                    <h3>⚡ Boosts Multiplicatifs</h3>
+                    <h3>⚡ Boosts Multiplicatifs
+                        <button class="help-btn" onclick="showHelp('multiplicative-boosts')" title="Aide">❓</button>
+                    </h3>
                     <div class="form-row">
                         <label>⚡ Boost Mult. 1 (%):</label>
                         <input type="number" id="mb1" value="0" min="0">
@@ -148,7 +244,15 @@
                         </div>
                     </div>
                     <div class="form-row">
-                        <label>💊 Item (%):</label>
+                        <label>🌍 Terrain (%):</label>
+                        <input type="number" id="terrain" value="0" min="0">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="terrainActive">
+                            <label for="terrainActive">Activé</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label>💊 Item Memoires (%):</label>
                         <input type="number" id="item" value="0" min="0">
                         <div class="checkbox-group">
                             <input type="checkbox" id="itemActive">
@@ -159,7 +263,9 @@
 
                 <!-- Stacks et défense -->
                 <div class="param-group">
-                    <h3>📈 Stacks & Défense</h3>
+                    <h3>📈 Stacks & Défense
+                        <button class="help-btn" onclick="showHelp('stacks-defense')" title="Aide">❓</button>
+                    </h3>
                     <div class="form-row">
                         <label>📊 Stack 1 valeur (%):</label>
                         <input type="number" id="stackValue1" value="30" min="0">
@@ -195,7 +301,9 @@
 
                 <!-- Classe & Type -->
                 <div class="param-group">
-                    <h3>🔢 Classe & Type</h3>
+                    <h3>🔢 Classe & Type
+                        <button class="help-btn" onclick="showHelp('class-type')" title="Aide">❓</button>
+                    </h3>
                     <div class="form-row">
                         <label>⚔️ Situation:</label>
                         <select id="guardSelection">
@@ -215,7 +323,9 @@
 
                 <!-- PV de la team -->
                 <div class="param-group">
-                    <h3>❤️ PV de la Team</h3>
+                    <h3>❤️ PV de la Team
+                        <button class="help-btn" onclick="showHelp('team-hp')" title="Aide">❓</button>
+                    </h3>
                     <div class="form-row">
                         <label>💚 Points de vie:</label>
                         <input type="number" id="teamHP" value="850000" min="1" max="2000000" step="1000">
@@ -224,6 +334,7 @@
                         <small>🎯 Modifie le seuil de mort selon vos PV</small>
                     </div>
                 </div>
+
                 </div>
             </div>
         </div>
@@ -231,7 +342,9 @@
         <!-- Interface d'analyse de seuils -->
         <div class="threshold-analysis">
             <div class="analysis-header">
-                <h2>📊 ANALYSE DE SEUILS DÉFENSIFS</h2>
+                <h2>📊 ANALYSE DE SEUILS DÉFENSIFS
+                    <button class="help-btn" onclick="showHelp('thresholds')" title="Aide">❓</button>
+                </h2>
                 <div class="character-summary">
                     <div class="summary-card">
                         <span class="label">🛡️ Défense:</span>
@@ -250,9 +363,9 @@
 
             <div class="thresholds-container">
                 <div class="threshold-card immunity">
-                    <div class="threshold-icon">🛡️</div>
+                    <div class="shield-icon">🛡️</div>
                     <div class="threshold-info">
-                        <h3>SEUIL D'IMMUNITÉ</h3>
+                        <h3>SEUIL D'ANNULATION</h3>
                         <div class="threshold-value" id="immunityThreshold">Calcul en cours...</div>
                         <p>Valeur max où vous prenez 0 dégâts</p>
                     </div>
@@ -271,21 +384,74 @@
             <div class="damage-curve-analysis">
                 <h3>📉 COURBE DE DÉGÂTS SUBIS</h3>
                 
+                <!-- Section d'explication du graphique -->
+                <div class="graph-explanation" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 2px solid #ffd700; border-radius: 12px; padding: 15px; margin-bottom: 20px; position: relative; z-index: 10;">
+                    <button type="button" class="btn" id="toggleHelpBtn" style="width: 100%; margin-bottom: 0; position: relative; z-index: 11;">
+                        ❓ Comment comprendre le graphique ? <span id="graphHelpToggle">(Cliquez pour afficher)</span>
+                    </button>
+                    <div id="graphHelpContent" style="display: none; padding: 10px; line-height: 1.6; color: #ffffff; margin-top: 10px;">
+                        <p style="margin: 8px 0;"><strong style="color: #ffd700;">📊 Axe horizontal (X) :</strong> L'attaque du boss (de 0 à X million)</p>
+                        <p style="margin: 8px 0;"><strong style="color: #ffd700;">📊 Axe vertical (Y) :</strong> Les dégâts que VOUS subissez</p>
+                        
+                        <p style="margin: 12px 0; padding-top: 10px; border-top: 1px solid #ffd70030;"><strong style="color: #ffd700;">🎨 Les 4 zones colorées sur le graphique :</strong> Représentent l'impact de votre arbre de potentiel ! Chaque zone montre la différence de dégâts entre deux niveaux de complétion d'arbre (0%, 55%, 69%, 79%, 100%). Plus la zone est large, plus l'arbre fait la différence. Les 4 couleurs (orange, bleu, vert, rose) permettent de distinguer visuellement chaque palier de complétion.</p>
+                        
+                        <p style="margin: 12px 0; padding-top: 10px; border-top: 1px solid #ffd70030;"><strong style="color: #00ff88;">🟢 Zone VERTE (Immunité) :</strong> Vous annulez tous les dégâts (0 dégâts subis) ! Votre défense est tellement élevée que le boss ne vous fait rien.</p>
+                        
+                        <p style="margin: 8px 0;"><strong style="color: #4dabf7;">🔵 Zone BLEUE (Survie) :</strong> Vous prenez des dégâts mais vous survivez. Plus le boss attaque fort, plus vous prenez de dégâts (courbe qui monte).</p>
+                        
+                        <p style="margin: 8px 0;"><strong style="color: #ff4444;">🔴 Zone ROUGE (Danger) :</strong> Les dégâts dépassent vos PV d'équipe = K.O ! Vous mourrez si le boss attaque à ce niveau.</p>
+                        
+                        <p style="margin: 12px 0; padding-top: 10px; border-top: 1px solid #ffd70030;"><strong style="color: #ffd700;">📈 La Pente (en haut à gauche) :</strong> Indique combien de dégâts supplémentaires vous prenez quand l'ATK du boss augmente de 1 million. Plus la pente est élevée, plus votre personnage est fragile. La couleur de la courbe change selon l'intensité des dégâts :</p>
+                        <p style="margin: 4px 0 4px 20px; font-size: 14px;">• <strong style="color: #00ff88;">Vert foncé</strong> → Faibles dégâts (survie facile)</p>
+                        <p style="margin: 4px 0 4px 20px; font-size: 14px;">• <strong style="color: #4dabf7;">Bleu clair</strong> → Dégâts modérés</p>
+                        <p style="margin: 4px 0 4px 20px; font-size: 14px;">• <strong style="color: #ffa500;">Orange</strong> → Dégâts importants</p>
+                        <p style="margin: 4px 0 4px 20px; font-size: 14px;">• <strong style="color: #ff4444;">Rouge</strong> → Dégâts critiques (proche de la mort)</p>
+                        
+                        <p style="margin: 12px 0; padding-top: 10px; border-top: 1px solid #ffd70030;"><strong style="color: #ffd700;">🌳 Impact maximal de l'arbre (en haut à gauche) :</strong> Montre combien de dégâts vous économisez grâce à la complétion maximale de votre arbre de potentiel par rapport au minimum. Plus ce chiffre est élevé, plus votre arbre est crucial pour votre survie !</p>
+                        
+                        <p style="margin: 12px 0; padding-top: 10px; border-top: 1px solid #ffd70030;"><strong style="color: #ffd700;">🎯 Images des Boss :</strong> Chaque boss est positionné sur le graphique selon son ATK. Vous voyez instantanément si vous survivez face à lui (bleu) ou si vous mourez (rouge).</p>
+                        
+                        <p style="margin: 8px 0; font-size: 13px; color: #aaaaaa;"><em>💡 Astuce : Passez votre souris sur le graphique pour voir les valeurs exactes !</em></p>
+                    </div>
+                </div>
+                
+                <script>
+                    document.getElementById('toggleHelpBtn').addEventListener('click', function() {
+                        var content = document.getElementById('graphHelpContent');
+                        var toggle = document.getElementById('graphHelpToggle');
+                        
+                        if (content.style.display === 'none' || content.style.display === '') {
+                            content.style.display = 'block';
+                            toggle.textContent = '(Cliquez pour masquer)';
+                        } else {
+                            content.style.display = 'none';
+                            toggle.textContent = '(Cliquez pour afficher)';
+                        }
+                    });
+                </script>
+                
                 <!-- Section des boss avec images -->
                 <div class="boss-images-section">
                     <h4>🎯 Positionnement des Boss</h4>
                     <div id="bossImagesContainer" class="boss-images-container">
                         <!-- Les images des boss seront ajoutées ici par JavaScript -->
                     </div>
+                    <a href="Boss.php" class="boss-manage-link" title="Ajouter, modifier ou masquer des boss">⚙️ Gérer / ajouter des boss</a>
                 </div>
                 
                 <div class="chart-container">
-                    <div id="damageChart" style="width:100%;height:400px;"></div>
+                    <div class="chart-header">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Mettre en plein écran">
+                            <span class="fullscreen-icon">⛶</span>
+                            <span class="fullscreen-text">Plein écran</span>
+                        </button>
+                    </div>
+                    <div id="damageChart" style="width:100%;height:400px;min-height:320px;"></div>
                 </div>
                 <div class="chart-legend">
                     <div class="legend-item">
                         <span class="legend-color immunity"></span>
-                        <span>Zone d'immunité (0 dégâts)</span>
+                        <span>Zone d'annulation (0 dégâts)</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color survival"></span>
@@ -300,13 +466,96 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn" onclick="saveConfiguration()">💾 SAUVEGARDER</button>
-            <button class="btn" onclick="loadConfiguration()">📁 CHARGER</button>
-            <button class="btn" onclick="exportConfiguration()">📤 EXPORTER FICHE</button>
-            <button class="btn" onclick="importConfiguration()">📥 IMPORTER FICHE</button>
-            <button class="btn" onclick="shareConfiguration()">🔗 PARTAGER</button>
+            <button class="btn" onclick="saveCurrentCalculation(this)">💾 SAUVEGARDER</button>
+            <button class="btn" onclick="exportConfiguration()">📤 EXPORTER</button>
+            <button class="btn" onclick="importConfiguration()">📥 IMPORTER</button>
+            <button class="btn" onclick="shareConfiguration(this)">🔗 PARTAGER</button>
             <button class="btn" onclick="resetAll()">🔄 RESET</button>
         </div>
     </div>
+
+    <!-- Modal d'aide -->
+    <div id="helpModal" class="help-modal">
+        <div class="help-content">
+            <button class="help-close" onclick="closeHelp()">✕</button>
+            <div id="helpText">
+                <!-- Le contenu sera inséré dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Update Log -->
+    <div id="updateLogModal" class="help-modal">
+        <div class="help-content update-log-content">
+            <button class="help-close" onclick="closeUpdateLog()">✕</button>
+            <div id="updateLogText">
+                <h3>📋 CHANGELOG - Mises à Jour</h3>
+                
+                <div class="update-version">
+                    <h4>🎄 Version 2.5.0 - 24 Décembre 2025</h4>
+                    <div class="update-category">
+                        <strong>✨ Nouvelles fonctionnalités :</strong>
+                        <ul>
+                            <li>🧮 Ajout d'un bouton flottant pour ouvrir la calculatrice en popup</li>
+                            <li>📋 Ajout de cette section Update Log pour suivre les modifications</li>
+                        </ul>
+                    </div>
+                    <div class="update-category">
+                        <strong>🎨 Améliorations visuelles :</strong>
+                        <ul>
+                            <li>Animation de pulsation sur le bouton calculatrice</li>
+                            <li>Design responsive optimisé pour mobile</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="update-version">
+                    <h4>🛡️ Version 2.0.0 - Mise à jour majeure</h4>
+                    <div class="update-category">
+                        <strong>✨ Nouvelles fonctionnalités :</strong>
+                        <ul>
+                            <li>Système de sauvegarde des calculs</li>
+                            <li>Graphiques interactifs avec Plotly.js</li>
+                            <li>Création de boss personnalisés</li>
+                            <li>Export/Import de configurations</li>
+                            <li>Système de partage de builds</li>
+                        </ul>
+                    </div>
+                    <div class="update-category">
+                        <strong>🔧 Corrections :</strong>
+                        <ul>
+                            <li>Amélioration de la précision des calculs</li>
+                            <li>Optimisation des performances</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="update-version">
+                    <h4>🎯 Version 1.0.0 - Version initiale</h4>
+                    <div class="update-category">
+                        <strong>✨ Fonctionnalités de base :</strong>
+                        <ul>
+                            <li>Calculateur de défense avancé</li>
+                            <li>Analyse des seuils de survie</li>
+                            <li>Support de tous les types et classes</li>
+                            <li>Système d'aide intégré</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="update-footer">
+                    <p>💡 <strong>Suggestion ?</strong> Contactez-nous sur GitHub !</p>
+                    <p>🔗 <a href="https://github.com/Victorius500" target="_blank">github.com/Victorius500</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plotly.js est déjà chargé dans le <head> (voir plus haut) -->
+
+    <!-- Bouton flottant pour la calculatrice -->
+    <button id="calculatorFloatingBtn" class="calculator-floating-btn" onclick="openCalculatorPopup()" title="Ouvrir la calculatrice">
+        🧮
+    </button>
 </body>
 </html>

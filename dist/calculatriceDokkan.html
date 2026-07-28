@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculatrice Dokkan Battle</title>
+    <style>@import url('assets/css/calcule.css');</style>
+</head>
+<body>
+    <div class="calculator-container">
+        <button class="btn-float-mode" onclick="openFloatingMode()" title="Ouvrir en mode fenêtre flottante">
+            Mode Flottant
+        </button>
+        
+        <div class="calculator-header">
+            <h1 class="calculator-title">CALCULATRICE</h1>
+            <p class="subtitle">DOKKAN BATTLE</p>
+        </div>
+
+        <div class="history-container" id="historyContainer">
+            <div class="history-title">⚡ HISTORIQUE ⚡</div>
+            <div id="history"></div>
+        </div>
+
+        <div class="display">
+            <div class="operation-display" id="operationDisplay"></div>
+            <div class="display-text" id="display">0</div>
+        </div>
+
+        <div class="buttons-grid">
+            <button class="btn btn-clear" onclick="clearDisplay()">C</button>
+            <button class="btn btn-operator" onclick="deleteLastChar()">⌫</button>
+            <button class="btn btn-operator" onclick="appendOperator('/')">÷</button>
+
+            <button class="btn btn-number" onclick="appendNumber('7')">7</button>
+            <button class="btn btn-number" onclick="appendNumber('8')">8</button>
+            <button class="btn btn-number" onclick="appendNumber('9')">9</button>
+            <button class="btn btn-operator" onclick="appendOperator('*')">×</button>
+
+            <button class="btn btn-number" onclick="appendNumber('4')">4</button>
+            <button class="btn btn-number" onclick="appendNumber('5')">5</button>
+            <button class="btn btn-number" onclick="appendNumber('6')">6</button>
+            <button class="btn btn-operator" onclick="appendOperator('-')">-</button>
+
+            <button class="btn btn-number" onclick="appendNumber('1')">1</button>
+            <button class="btn btn-number" onclick="appendNumber('2')">2</button>
+            <button class="btn btn-number" onclick="appendNumber('3')">3</button>
+            <button class="btn btn-operator" onclick="appendOperator('+')">+</button>
+
+            <button class="btn btn-number" onclick="appendNumber('0')">0</button>
+            <button class="btn btn-number" onclick="appendNumber('.')">.</button>
+            <button class="btn btn-equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+    
+    <script>
+        function openFloatingMode() {
+            // Ouvrir la calculatrice dans une fenêtre popup flottante
+            const width = 400;
+            const height = 700;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no,status=no,menubar=no,toolbar=no,location=no`;
+            
+            window.open('calculatricePopup.html', 'CalculatriceDokkan', features);
+        }
+    </script>
+    
+    <script src="assets/js/calcule.js"></script>
+</body>
+</html>

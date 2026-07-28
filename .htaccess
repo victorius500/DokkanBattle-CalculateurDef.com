@@ -1,0 +1,40 @@
+# =====================================================================
+# En-têtes de sécurité HTTP - Calculateur Dokkan Battle
+# =====================================================================
+
+<IfModule mod_headers.c>
+    # Empêche l'affichage du site dans une iframe (clickjacking)
+    Header always set X-Frame-Options "DENY"
+
+    # Empêche le navigateur de deviner le type d'un fichier
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Ne divulgue pas l'URL complète du site aux domaines tiers
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Le site n'a besoin d'aucune de ces permissions
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
+    # Content Security Policy
+    # 'unsafe-inline' reste nécessaire : les pages utilisent des attributs
+    # onclick et des blocs <style>/<script> intégrés au HTML.
+    # L'intérêt principal ici est de verrouiller les sources externes
+    # autorisées (seuls le CDN Plotly et Google Fonts peuvent charger du code).
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.plot.ly; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+    # Masque la version de PHP
+    Header always unset X-Powered-By
+</IfModule>
+
+# Interdit le listage des répertoires (ex: /assets/images/)
+Options -Indexes
+
+# Bloque l'accès aux fichiers sensibles s'ils venaient à être déposés
+<FilesMatch "(^\.|\.(log|sql|json|md|txt|yml|ini|bak|old|env)$)">
+    Require all denied
+</FilesMatch>
+
+# Autorise malgré tout les fichiers légitimes nécessaires au site
+<FilesMatch "^(robots\.txt|sitemap\.xml|manifest\.json)$">
+    Require all granted
+</FilesMatch>

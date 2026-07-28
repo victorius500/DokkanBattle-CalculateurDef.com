@@ -1,0 +1,15 @@
+{
+  // Déploiement du calculateur sur Cloudflare Workers (site statique).
+  // Aucun script Worker n'est nécessaire : le site est entièrement
+  // constitué de fichiers statiques, donc pas de champ "main" ni "binding".
+  //
+  // Le dossier ./dist est généré par build-static.ps1
+  // Déploiement :  npx wrangler deploy
+  // Doit correspondre exactement au Worker existant, sinon un second
+  // Worker serait créé au lieu de mettre celui-ci à jour.
+  "name": "dokkanbattlecalculateurdef",
+  "compatibility_date": "2026-07-28",
+  "assets": {
+    "directory": "./dist"
+  }
+}

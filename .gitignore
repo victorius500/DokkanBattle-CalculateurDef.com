@@ -1,0 +1,26 @@
+# Dépendances et environnements (regénérables, très volumineux)
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Applications de bureau : conservées hors du dépôt du site
+DokkanApp/
+DokkanApp_Python/
+
+# Sorties de build des applications
+build/
+*.exe
+*.spec
+
+# Outils
+.wrangler/
+.agents/
+
+# Système
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Note : dist/ est volontairement versionné.
+# C'est le dossier que Cloudflare déploie (voir wrangler.jsonc).
