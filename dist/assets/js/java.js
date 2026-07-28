@@ -3469,8 +3469,12 @@ function clearBossForm() {
 // Afficher la liste des boss personnalisés
 function displayCustomBosses() {
     const container = document.getElementById('bossListContainer');
+    // Ce conteneur n'existe que sur la page de gestion des boss : sur le
+    // calculateur, il n'y a simplement rien à afficher.
+    if (!container) return;
+
     const customBosses = JSON.parse(localStorage.getItem('customBosses') || '[]');
-    
+
     if (customBosses.length === 0) {
         container.innerHTML = '<p class="no-boss-message">Aucun boss personnalisé ajouté</p>';
         return;

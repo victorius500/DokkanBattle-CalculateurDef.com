@@ -131,6 +131,22 @@
             box-shadow: 0 6px 20px rgba(255, 140, 0, 0.5);
         }
 
+        /* En dessous de 1100px, les deux boutons flottants chevaucheraient le
+           titre : on les repasse dans le flux, côte à côte au-dessus du titre. */
+        @media (max-width: 1100px) {
+            .update-log-btn,
+            .boss-manager-btn {
+                position: static;
+                display: inline-block;
+                margin: 0 6px 15px;
+                vertical-align: middle;
+            }
+
+            .header h1 {
+                margin-top: 10px;
+            }
+        }
+
         @media (max-width: 768px) {
             .update-log-btn {
                 position: static;

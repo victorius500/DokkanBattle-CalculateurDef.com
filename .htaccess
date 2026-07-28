@@ -16,11 +16,14 @@
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
 
     # Content Security Policy
-    # 'unsafe-inline' reste nécessaire : les pages utilisent des attributs
+    # 'unsafe-inline' est nécessaire : les pages utilisent des attributs
     # onclick et des blocs <style>/<script> intégrés au HTML.
-    # L'intérêt principal ici est de verrouiller les sources externes
-    # autorisées (seuls le CDN Plotly et Google Fonts peuvent charger du code).
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.plot.ly; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    # 'unsafe-eval' est nécessaire à Plotly, qui construit des fonctions
+    # dynamiquement (new Function) pour tracer les graphiques ; sans lui le
+    # graphique ne s'affiche pas du tout.
+    # L'intérêt principal reste de verrouiller les origines autorisées :
+    # seuls le CDN Plotly et Google Fonts peuvent charger du code.
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.plot.ly; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
     # Masque la version de PHP
     Header always unset X-Powered-By
